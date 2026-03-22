@@ -1,36 +1,76 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { removeItem, updateQuantity } from './CartSlice';
+
 import './CartItem.css';
 
+import { removeItem, updateQuantity,clearCart } from './CartSlice';
+
+
 const CartItem = ({ onContinueShopping }) => {
-  const cart = useSelector(state => state.cart.items);
-  const dispatch = useDispatch();
+  const cart = useSelector(state => state.cart.items);//cart m data store se aa rha h
+  const dispatch = useDispatch();//data bhejne k liye store m
 
   // Calculate total amount for all products in the cart
   const calculateTotalAmount = () => {
- 
+  let total = 0;
+
+  cart.forEach(item => {
+    total += Number(item.cost)* item.quantity;
+  });
+
+  return total;
   };
 
-  const handleContinueShopping = (e) => {
-   
-  };
+
+const handleContinueShopping = (e) => {
+//  e.preventDefault();
+  console.log("Button clicked"); // 🔥 debug
+  onContinueShopping(e); //its parent function which i want to execute on click of btn in child
+};
+
 
 
 
   const handleIncrement = (item) => {
+     dispatch(updateQuantity({
+    name: item.name,
+    quantity: item.quantity + 1
+  }));
   };
 
   const handleDecrement = (item) => {
-   
+ 
+  if (item.quantity > 1) {
+    dispatch(updateQuantity({
+      name: item.name,
+      quantity: item.quantity - 1
+    }));
+  }
+
   };
 
   const handleRemove = (item) => {
+ 
+  dispatch(removeItem(item.name));
+
   };
 
   // Calculate total cost based on quantity for an item
   const calculateTotalCost = (item) => {
+      return Number(item.cost) * item.quantity;
   };
+
+  const handleCheckout = () => {
+
+  if (cart.length === 0) {
+    alert("Cart is empty");
+    return;
+  }
+
+  alert("Order placed successfully! 🎉");
+
+  dispatch(clearCart());
+};
 
   return (
     <div className="cart-container">
@@ -57,7 +97,7 @@ const CartItem = ({ onContinueShopping }) => {
       <div className="continue_shopping_btn">
         <button className="get-started-button" onClick={(e) => handleContinueShopping(e)}>Continue Shopping</button>
         <br />
-        <button className="get-started-button1">Checkout</button>
+        <button className="get-started-button1"  onClick={(e) => handleCheckout(e)} >Checkout</button>
       </div>
     </div>
   );

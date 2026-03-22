@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './ProductList.css'
 import CartItem from './CartItem';
+import { useDispatch } from 'react-redux';
+import { addItem } from './CartSlice';
+
 function ProductList({ onHomeClick }) {
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
+const dispatch = useDispatch();
 
     const plantsArray = [
         {
@@ -232,6 +236,8 @@ function ProductList({ onHomeClick }) {
         fontSize: '30px',
         textDecoration: 'none',
     }
+ 
+
 
     const handleHomeClick = (e) => {
         e.preventDefault();
@@ -248,11 +254,17 @@ function ProductList({ onHomeClick }) {
         setShowCart(false); // Hide the cart when navigating to About Us
     };
 
+
+
     const handleContinueShopping = (e) => {
-        e.preventDefault();
-        setShowCart(false);
-    };
+    e.preventDefault();
+    console.log("Parent function called"); // 🔥 debug
+    setShowCart(false);
+    setShowPlants(true); // 🔥 VERY IMPORTANT
+};
+
     return (
+   
         <div>
             <div className="navbar" style={styleObj}>
                 <div className="tag">
@@ -269,12 +281,44 @@ function ProductList({ onHomeClick }) {
                 </div>
                 <div style={styleObjUl}>
                     <div> <a href="#" onClick={(e) => handlePlantsClick(e)} style={styleA}>Plants</a></div>
-                    <div> <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}><h1 className='cart'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height="68" width="68"><rect width="156" height="156" fill="none"></rect><circle cx="80" cy="216" r="12"></circle><circle cx="184" cy="216" r="12"></circle><path d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8" fill="none" stroke="#faf9f9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" id="mainIconPathAttribute"></path></svg></h1></a></div>
+                    <div> 
+                        <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}><h1 className='cart'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height="68" width="68"><rect width="156" height="156" fill="none"></rect><circle cx="80" cy="216" r="12"></circle><circle cx="184" cy="216" r="12"></circle><path d="M42.3,72H221.7l-26.4,92.4A15.9,15.9,0,0,1,179.9,176H84.1a15.9,15.9,0,0,1-15.4-11.6L32.5,37.8A8,8,0,0,0,24.8,32H8" fill="none" stroke="#faf9f9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" id="mainIconPathAttribute"></path></svg></h1>
+                        </a>
+                    </div>
                 </div>
             </div>
             {!showCart ? (
                 <div className="product-grid">
+   {showPlants && plantsArray.map((category, index) => (
+        <div key={index}>
+            <h2>{category.category}</h2>
 
+            <div className="plants-container">
+         {category.plants.map((plant, i) => {
+
+  console.log("PLANT COST:", plant.cost, typeof plant.cost); // ✅ yaha chalega
+
+  return (
+    <div key={i} className="plant-card">
+      <img src={plant.image} alt={plant.name} />
+      <h3>{plant.name}</h3>
+      <p>{plant.description}</p>
+      <p>{plant.cost} -- "Item cost"</p>
+
+      <button onClick={() => dispatch(addItem({
+        ...plant,
+        cost: typeof plant.cost === "string"
+          ? Number(plant.cost.replace('$', ''))
+          : plant.cost
+      }))}>
+        Add to Cart
+      </button>
+    </div>
+  );
+})}
+            </div>
+        </div>
+    ))}
 
                 </div>
             ) : (
@@ -285,3 +329,91 @@ function ProductList({ onHomeClick }) {
 }
 
 export default ProductList;
+
+
+// Slice mein export const { addItem, removeItem, updateQuantity } = CartSlice.actions; likho.
+// Reducer ko export default CartSlice.reducer; karo.
+// Components mein import { addItem } from './CartSlice'; karke dispatch(addItem(product)) call karo.
+// Store mein reducer ko import karke configureStore mein add karo.
+
+
+
+// Sure! Let me explain in simple terms what’s happening with category and why we use .map() like this.
+
+// 1. What is category in .map((category, index) => ...)?
+// Your plantsArray looks like this (simplified):
+
+
+
+// const plantsArray = [
+//   {
+//     category: "Air Purifying Plants",
+//     plants: [ /* array of plant objects */ ]
+//   },
+//   {
+//     category: "Flowering Plants",
+//     plants: [ /* another array of plant objects */ ]
+//   },
+//   // more categories...
+// ];
+// plantsArray is an array of objects.
+// Each object represents a category of plants.
+// Each category object has two keys:
+// category: the name of the category (like "Air Purifying Plants")
+// plants: an array of plant objects inside that category.
+// When you do:
+
+
+
+// plantsArray.map((category, index) => (
+//   // here 'category' is one object from plantsArray
+// ))
+// The .map() loops over each object in the plantsArray.
+// Each object is assigned to the variable category inside the function.
+// So category here means one category object, e.g.:
+
+
+// {
+//   category: "Air Purifying Plants",
+//   plants: [ {name: "Snake Plant", ...}, {...} ]
+// }
+// 2. What is category.plants.map((plant, i) => ...)?
+// Inside each category object, there is a plants array.
+// This array contains multiple plant objects.
+// To render all plants in that category, you loop over category.plants using .map().
+// Here, plant refers to one plant object inside the plants array.
+// Example of one plant object:
+
+
+
+// {
+//   name: "Snake Plant",
+//   image: "url",
+//   description: "Produces oxygen at night",
+//   cost: "$15"
+// }
+// So this inner .map() goes through each plant in the current category and renders it.
+
+// Summary in simple words:
+// plantsArray is a list of categories.
+// Each category has a name (category.category) and a list of plants (category.plants).
+// First .map() loops over categories.
+// Second .map() loops over plants inside each category.
+// Visual example:
+
+
+// plantsArray.map((category, index) => (
+//   <div key={index}>
+//     <h2>{category.category}</h2>  {/* Category name */}
+//     <div className="plants-container">
+//       {category.plants.map((plant, i) => (
+//         <div key={i}>
+//           <h3>{plant.name}</h3>
+//           <img src={plant.image} alt={plant.name} />
+//           <p>{plant.description}</p>
+//           <p>{plant.cost}</p>
+//         </div>
+//       ))}
+//     </div>
+//   </div>
+// ))
